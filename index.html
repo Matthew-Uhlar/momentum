@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Momentum</title>
+<meta name="description" content="Daily to yearly checklists for career growth in Austin, synced across your devices.">
+<meta name="theme-color" content="#1e6b55">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Momentum">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+/* Layout: mobile-first app shell. Sticky header with period and meter, scrolling list, bottom tab bar. */
+:root{
+  --bg:#eef2f1; --surface:#ffffff; --ink:#15231f; --muted:#56655f; --line:#d3dcd9;
+  --accent:#1e6b55; --accent-soft:#d7ebe3; --on-accent:#ffffff; --sun:#b8691f; --sun-soft:#f6e6d4; --done:#8a9893; --danger:#a33a2a;
+  --display:ui-rounded,'SF Pro Rounded',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --body:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0f1816; --surface:#17231f; --ink:#e4ece9; --muted:#9db0a9; --line:#2b3a35;
+  --accent:#5cc3a0; --accent-soft:#1d3a31; --on-accent:#08201a; --sun:#e5a061; --sun-soft:#3a2a1b; --done:#6d7e78; --danger:#ef8a78; color-scheme:dark}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--body);-webkit-text-size-adjust:100%}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.2;text-wrap:balance}
+p{margin:0}
+a{color:var(--accent)}
+button{font:inherit;color:inherit}
+[hidden]{display:none!important}
+.eyebrow{font:600 .7rem/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+/* Auth */
+.auth{min-height:100%;display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 24px) 20px calc(env(safe-area-inset-bottom,0px) + 24px)}
+.auth-card{width:100%;max-width:380px;display:flex;flex-direction:column;gap:18px}
+.auth-card img{width:64px;height:64px;border-radius:15px}
+.auth-card h1{font-size:1.9rem}
+.auth-card p{color:var(--muted)}
+form{display:flex;flex-direction:column;gap:12px}
+label.field{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:.9rem}
+input[type=email],input[type=password]{font:inherit;font-size:16px;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+input:focus-visible,button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.btn{appearance:none;border:0;border-radius:10px;padding:13px 16px;font-weight:600;background:var(--accent);color:var(--on-accent);cursor:pointer}
+.btn:disabled{opacity:.6}
+.linkbtn{appearance:none;background:none;border:0;color:var(--accent);font-weight:600;padding:6px 0;cursor:pointer;text-align:left}
+.msg{font-size:.9rem;padding:10px 12px;border-radius:8px;background:var(--accent-soft)}
+.msg.err{background:var(--sun-soft);color:var(--danger)}
+
+/* App */
+.app{min-height:100%;display:flex;flex-direction:column}
+.top{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 12px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.top>*{width:100%;max-width:728px;margin-inline:auto}
+.top-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.top h1{font-size:1.5rem}
+.period{font:500 .78rem var(--mono);color:var(--muted)}
+.sync{display:inline-flex;align-items:center;gap:6px;font:500 .72rem var(--mono);color:var(--muted);background:none;border:0;padding:6px 0;cursor:pointer}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--done)}
+.dot.ok{background:var(--accent)}
+.dot.busy{background:var(--sun)}
+.dot.off{background:var(--danger)}
+.meter{display:flex;align-items:center;gap:10px}
+.bar{flex:1;height:8px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s ease}
+.meter b{font:600 .82rem var(--mono);font-variant-numeric:tabular-nums;min-width:4ch;text-align:right}
+main{flex:1;padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 92px);width:100%;max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.list{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.item{border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.item label{display:grid;grid-template-columns:30px 1fr;gap:12px;padding:14px;cursor:pointer;align-items:start}
+.item input{position:absolute;opacity:0;width:1px;height:1px}
+.box{width:26px;height:26px;border:2px solid var(--accent);border-radius:7px;display:grid;place-items:center;background:var(--surface)}
+.box svg{width:16px;height:16px;opacity:0}
+.box svg path{stroke:var(--on-accent)}
+.item input:checked+.box{background:var(--accent)}
+.item input:checked+.box svg{opacity:1}
+.item input:focus-visible+.box{outline:3px solid var(--sun);outline-offset:2px}
+.txt{display:flex;flex-direction:column;gap:4px;min-width:0}
+.txt strong{font-weight:600}
+.why{color:var(--muted);font-size:.9rem}
+.tag{display:inline-block;font:600 .64rem/1.5 var(--mono);letter-spacing:.03em;padding:0 6px;border-radius:4px;margin-right:6px;vertical-align:1px}
+.tag.ev{background:var(--accent-soft);color:var(--accent)}
+.tag.lo{background:var(--sun-soft);color:var(--sun)}
+.item.done strong{color:var(--done);text-decoration:line-through;text-decoration-thickness:1px}
+.history{display:flex;flex-direction:column;gap:8px}
+.cells{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:4px}
+.cell{aspect-ratio:1;border-radius:4px;background:var(--line)}
+.cell[data-l="1"]{background:var(--accent-soft)}
+.cell[data-l="2"]{background:color-mix(in srgb,var(--accent) 55%,var(--accent-soft))}
+.cell[data-l="3"]{background:var(--accent)}
+.cell.today{outline:2px solid var(--sun);outline-offset:1px}
+.small{font-size:.82rem;color:var(--muted)}
+
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);padding:6px max(4px,calc((100% - 760px)/2)) calc(env(safe-area-inset-bottom,0px) + 6px)}
+.tabbar button{appearance:none;background:none;border:0;padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.68rem;font-weight:600;color:var(--muted);cursor:pointer;min-width:0}
+.tabbar button .n{font:600 .66rem var(--mono);font-variant-numeric:tabular-nums;padding:1px 6px;border-radius:999px;background:var(--line);color:var(--ink)}
+.tabbar button[aria-selected="true"]{color:var(--accent)}
+.tabbar button[aria-selected="true"] .n{background:var(--accent);color:var(--on-accent)}
+.tabbar svg{width:20px;height:20px}
+
+/* Research view */
+.research{display:flex;flex-direction:column;gap:18px}
+.research h2{font-size:1.25rem}
+.research h3{font-size:1rem}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:2px}
+.stat .v{font:700 1.4rem var(--display);font-variant-numeric:tabular-nums}
+.stat .v.down{color:var(--sun)}
+.stat .l{font-size:.82rem;color:var(--muted)}
+ul.plain{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.sources{font-size:.82rem;color:var(--muted)}
+.sources ol{padding-left:20px;margin:6px 0 0;display:flex;flex-direction:column;gap:3px}
+.sources a{word-break:break-word}
+.account{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+@media (min-width:700px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+
+<section class="auth" id="authView" hidden>
+  <div class="auth-card">
+    <img src="apple-touch-icon.png" alt="">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <h1>Momentum</h1>
+      <p>Sign in to sync your checklists between your iPhone and computer.</p>
+    </div>
+    <form id="authForm" novalidate>
+      <label class="field" for="email">Email<input id="email" type="email" autocomplete="email" required></label>
+      <label class="field" for="password">Password<input id="password" type="password" autocomplete="current-password" minlength="8" required></label>
+      <button class="btn" id="authSubmit" type="submit">Sign in</button>
+    </form>
+    <button class="linkbtn" id="authSwitch" type="button">New here? Create an account</button>
+    <div class="msg" id="authMsg" role="status" hidden></div>
+  </div>
+</section>
+
+<section class="app" id="appView" hidden>
+  <header class="top">
+    <div class="top-row">
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+        <h1 id="viewTitle">Today</h1>
+        <span class="period" id="periodText"></span>
+      </div>
+      <button class="sync" id="syncBtn" type="button" aria-label="Sync now"><span class="dot" id="syncDot"></span><span id="syncText">Not synced</span></button>
+    </div>
+    <div class="meter" id="meter"><div class="bar"><i id="barFill"></i></div><b id="meterText">0/0</b></div>
+  </header>
+  <main id="main"></main>
+  <nav class="tabbar" id="tabbar" role="tablist" aria-label="Checklists"></nav>
+</section>
+
+<template id="researchTpl">
+  <div class="research">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span class="eyebrow">Austin market · checked October 2026</span>
+      <h2>Why these habits</h2>
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="v">3.9%</span><span class="l">Austin metro unemployment, Aug 2026 [1]</span></div>
+      <div class="stat"><span class="v">+7,500</span><span class="l">Jobs added in a year, 1.51M employed [2]</span></div>
+      <div class="stat"><span class="v down">−5.5%</span><span class="l">Information sector jobs, year over year [1]</span></div>
+      <div class="stat"><span class="v">+2.0%</span><span class="l">Professional and business services [1]</span></div>
+    </div>
+    <h3>What it means</h3>
+    <ul class="plain">
+      <li>Austin keeps adding jobs, but the information sector is shrinking. Growth is in construction, manufacturing, healthcare and semiconductors [2][3].</li>
+      <li>Recruiters report demand concentrated in AI, cloud and security, with generalist full stack roles crowded [4][5]. Lead with AI features, IT operations and Scrum leadership, and widen targets to healthcare IT, chip and manufacturing IT, and fintech.</li>
+      <li>Referred applicants were 6% of applicants but 29% of hires in one large study [6]. In tech, moderately weak ties drove the most job moves [7].</li>
+    </ul>
+    <h3>Free and low cost help</h3>
+    <ul class="plain">
+      <li><a href="https://wfscapitalarea.com/job-seekers/" target="_blank" rel="noopener">Workforce Solutions Capital Area</a>: free coaching, workshops, hiring events and training scholarships [8].</li>
+      <li><a href="https://continue.austincc.edu/areas-of-study/computer-science-and-information-technology" target="_blank" rel="noopener">ACC Continuing Education</a>: AWS, CompTIA, Cisco and security prep with financial aid listed [9].</li>
+      <li><a href="https://www.builtinaustin.com/articles/companies-hiring-software-engineers-austin" target="_blank" rel="noopener">Built In Austin</a> for companies hiring engineers [10], and <a href="https://dev.events/meetups/NA/US/TX/Austin" target="_blank" rel="noopener">dev.events</a> or <a href="https://techmeet.net/" target="_blank" rel="noopener">Tech Meet Austin</a> for meetups.</li>
+    </ul>
+    <h3>The research</h3>
+    <ul class="plain">
+      <li>Job search programs raised the odds of getting hired 2.67 times, but only when they built skills and motivation together [11].</li>
+      <li>If-then plans had a medium to large effect on reaching goals across 94 studies [12].</li>
+      <li>Laid off professionals who wrote about the experience 20 minutes a day for 5 days were reemployed far more often: 53% vs 14% [13].</li>
+      <li>7+ hours of sleep [14], 150 active minutes a week [15], close relationships [16] and a cash buffer [17] all support the long game.</li>
+    </ul>
+    <div class="account" id="account"></div>
+    <div class="sources">
+      <span class="eyebrow">Sources</span>
+      <ol>
+        <li><a href="https://www.bls.gov/eag/eag.tx_austin_msa.htm" target="_blank" rel="noopener">BLS: Austin-Round Rock-San Marcos Economy at a Glance</a></li>
+        <li><a href="https://hoodline.com/2026/09/san-antonio-sheds-1-600-workers-in-august-as-austin-adds-7-500-jobs/" target="_blank" rel="noopener">Hoodline: Austin adds 7,500 jobs</a></li>
+        <li><a href="https://www.movetoaustin.org/blog/austin-job-market-growth/" target="_blank" rel="noopener">Move to Austin: Austin job market 2026</a></li>
+        <li><a href="https://kitalent.com/articles/article-austin-tech-talent-shortage" target="_blank" rel="noopener">KiTalent: Austin tech talent shortage</a></li>
+        <li><a href="https://www.techtarget.com/whatis/feature/Tech-job-market-statistics-and-outlook" target="_blank" rel="noopener">TechTarget: Tech job market statistics</a></li>
+        <li><a href="https://www.newyorkfed.org/medialibrary/media/research/staff_reports/sr568.pdf" target="_blank" rel="noopener">NY Fed: Do informal referrals lead to better matches?</a></li>
+        <li><a href="https://news.stanford.edu/stories/2022/09/real-strength-weak-ties" target="_blank" rel="noopener">Stanford: The real strength of weak ties</a></li>
+        <li><a href="https://wfscapitalarea.com/job-seekers/" target="_blank" rel="noopener">Workforce Solutions Capital Area</a></li>
+        <li><a href="https://continue.austincc.edu/areas-of-study/computer-science-and-information-technology" target="_blank" rel="noopener">ACC Continuing Education</a></li>
+        <li><a href="https://www.builtinaustin.com/articles/companies-hiring-software-engineers-austin" target="_blank" rel="noopener">Built In Austin: Companies hiring engineers</a></li>
+        <li><a href="https://research.monash.edu/en/publications/effectiveness-of-job-search-interventions-a-meta-analytic-review" target="_blank" rel="noopener">Liu, Huang and Wang (2014)</a></li>
+        <li><a href="https://kops.uni-konstanz.de/handle/123456789/10973" target="_blank" rel="noopener">Gollwitzer and Sheeran (2006)</a></li>
+        <li><a href="https://www.wise-interventions.org/posters/writing-feelings-regarding-job-loss-decreased-time-taken-to-find-new-job-among-unemployed-middle-aged-professionals-over-6-weeks" target="_blank" rel="noopener">Spera, Buhrfeind and Pennebaker (1994)</a></li>
+        <li><a href="https://www.cdc.gov/sleep/about/index.html" target="_blank" rel="noopener">CDC: About sleep</a></li>
+        <li><a href="https://www.cdc.gov/physical-activity/features/boost-brain-health.html" target="_blank" rel="noopener">CDC: Physical activity and brain health</a></li>
+        <li><a href="https://news.harvard.edu/gazette/story/2017/04/over-nearly-80-years-harvard-study-has-been-showing-how-to-live-a-healthy-and-happy-life/" target="_blank" rel="noopener">Harvard Study of Adult Development</a></li>
+        <li><a href="https://www.federalreserve.gov/newsevents/pressreleases/other20260513a.htm" target="_blank" rel="noopener">Federal Reserve: Household Well-Being 2025</a></li>
+      </ol>
+    </div>
+  </div>
+</template>
+
+<script src="config.js"></script>
+<script src="plan.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
