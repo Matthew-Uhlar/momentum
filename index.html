@@ -87,6 +87,14 @@ main{flex:1;padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 92px);width
 .tag.ev{background:var(--accent-soft);color:var(--accent)}
 .tag.lo{background:var(--sun-soft);color:var(--sun)}
 .item.done strong{color:var(--done);text-decoration:line-through;text-decoration-thickness:1px}
+.weekcard{display:flex;flex-direction:column;gap:10px}
+.weekcard-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.weekcard-head>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.weekcard h2{font-size:1.1rem}
+.wk-count{font:600 .82rem var(--mono);font-variant-numeric:tabular-nums;padding:2px 8px;border-radius:999px;background:var(--sun-soft);color:var(--sun)}
+.weekcard .list{border-color:color-mix(in srgb,var(--sun) 45%,var(--line))}
+.when{font:600 .72rem var(--mono);letter-spacing:.02em;color:var(--sun)}
+.txt a{font-size:.85rem;font-weight:600;align-self:flex-start;padding:2px 0}
 .history{display:flex;flex-direction:column;gap:8px}
 .cells{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:4px}
 .cell{aspect-ratio:1;border-radius:4px;background:var(--line)}
@@ -214,6 +222,7 @@ ul.plain{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
 
 <script src="config.js"></script>
 <script src="plan.js"></script>
+<script src="week.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

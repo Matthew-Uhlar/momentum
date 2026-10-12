@@ -38,7 +38,7 @@
     return { key: 'y-' + y, text: String(y) };
   }
   function lastDays(n) { const out = []; for (let i = n - 1; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); out.push(d); } return out; }
-  function activeKeys() { return [...new Set([...ORDER.map(c => periodOf(c).key), ...lastDays(14).map(d => 'd-' + ymd(d))])]; }
+  function activeKeys() { return [...new Set([...ORDER.map(c => periodOf(c).key), ...lastDays(14).map(d => 'd-' + ymd(d)), ...(window.WEEK && window.WEEK.weekKey ? [window.WEEK.weekKey] : [])])]; }
 
   // ---------- Local data ----------
   // data[key] = { items: { itemId: { v: bool, t: ms } }, dirty: bool }
@@ -163,6 +163,39 @@
       bar.appendChild(b);
     }
   }
+  // "This week" card from week.js. Shows during that week, and as a preview the week before.
+  function weekCard() {
+    const W = window.WEEK;
+    if (!W || !Array.isArray(W.items)) return null;
+    const cur = periodOf('weekly').key;
+    const next = new Date(); next.setDate(next.getDate() + 7);
+    const upcoming = periodOf('weekly', next).key;
+    if (W.weekKey !== cur && W.weekKey !== upcoming) return null;
+    const key = W.weekKey;
+    const done = W.items.filter(i => isOn(key, 'wk-' + i.id)).length;
+    const box = document.createElement('section'); box.className = 'weekcard';
+    box.innerHTML = `<div class="weekcard-head"><div><span class="eyebrow"></span><h2></h2></div><b class="wk-count"></b></div><ul class="list"></ul><span class="small"></span>`;
+    box.querySelector('.eyebrow').textContent = W.weekKey === cur ? 'This week in Austin' : 'Coming up next week';
+    const mon = new Date(key.slice(2) + 'T12:00:00'), sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    box.querySelector('h2').textContent = `Events and to-dos, ${MON[mon.getMonth()]} ${mon.getDate()} to ${MON[sun.getMonth()]} ${sun.getDate()}`;
+    box.querySelector('.wk-count').textContent = `${done}/${W.items.length}`;
+    box.querySelector('.small').textContent = `${W.checked}. Confirm times on the event page before you go.`;
+    const ul = box.querySelector('ul');
+    for (const it of W.items) {
+      const id = 'wk-' + it.id, on = isOn(key, id);
+      const li = document.createElement('li'); li.className = 'item' + (on ? ' done' : '');
+      li.innerHTML = `<label><input type="checkbox" id="c-${id}" ${on ? 'checked' : ''}><span class="box">${CHECK}</span><span class="txt"><span class="when"></span><strong></strong><span class="why where"></span><span class="why note"></span><a target="_blank" rel="noopener">Event details</a></span></label>`;
+      li.querySelector('.when').textContent = it.when;
+      li.querySelector('strong').textContent = it.title;
+      li.querySelector('.where').textContent = it.where;
+      li.querySelector('.note').textContent = it.why;
+      const a = li.querySelector('a'); a.href = it.url; a.addEventListener('click', e => e.stopPropagation());
+      li.querySelector('input').addEventListener('change', e => { setItem(key, id, e.target.checked); render(); syncSoon(); });
+      ul.appendChild(li);
+    }
+    return box;
+  }
+
   function renderList() {
     const c = view, p = periodOf(c), items = PLAN[c].items, n = countDone(p.key, items);
     $('periodText').textContent = p.text;
@@ -182,6 +215,7 @@
       ul.appendChild(li);
     }
     const parts = [ul];
+    if (c === 'weekly') { const card = weekCard(); if (card) parts.unshift(card); }
     if (c === 'daily') {
       const h = document.createElement('div'); h.className = 'history';
       const total = items.length;

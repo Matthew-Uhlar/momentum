@@ -1,6 +1,6 @@
 // Caches the app shell so Momentum opens offline. Sync calls always go to the network.
-const CACHE = 'momentum-v1';
-const SHELL = ['./', 'index.html', 'app.js', 'plan.js', 'config.js', 'manifest.webmanifest',
+const CACHE = 'momentum-v2';
+const SHELL = ['./', 'index.html', 'app.js', 'plan.js', 'week.js', 'config.js', 'manifest.webmanifest',
   'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
